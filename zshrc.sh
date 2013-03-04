@@ -58,14 +58,19 @@ ZSH_VCS_PROMPT_UNSTAGED_SIGIL=${ZSH_VCS_PROMPT_UNSTAGED_SIGIL:-'✚ '}
 ZSH_VCS_PROMPT_UNTRACKED_SIGIL=${ZSH_VCS_PROMPT_UNTRACKED_SIGIL:-'… '}
 ZSH_VCS_PROMPT_STASHED_SIGIL=${ZSH_VCS_PROMPT_STASHED_SIGIL:-'⚑'}
 ZSH_VCS_PROMPT_CLEAN_SIGIL=${ZSH_VCS_PROMPT_CLEAN_SIGIL:-'✔ '}
+ZSH_VCS_PROMPT_UNCLEAN_SIGIL=${ZSH_VCS_PROMPT_UNCLEAN_SIGIL:-''}
 
 ## Hide count if set 'true'.
 ZSH_VCS_PROMPT_HIDE_COUNT=${ZSH_VCS_PROMPT_HIDE_COUNT:-'false'}
+
+# Length of commit id
+ZSH_VCS_PROMPT_HASH_LENGTH=10
 
 ## Prompt formats.
 #   #s : The VCS name (e.g. git svn hg).
 #   #a : The action name.
 #   #b : The current branch name.
+#   #x : The current commit id.
 #
 #   #c : The ahead status.
 #   #d : The behind status.
@@ -76,6 +81,7 @@ ZSH_VCS_PROMPT_HIDE_COUNT=${ZSH_VCS_PROMPT_HIDE_COUNT:-'false'}
 #   #h : The untracked status.
 #   #i : The stashed status.
 #   #j : The clean status.
+#   #J : The unclean status.
 
 if [ -n "$BASH_VERSION" ]; then
     ### Bash
@@ -301,6 +307,9 @@ function _zsh_vcs_prompt_update_vcs_status() {
     local stashed=${vcs_status[11]}
     local clean=${vcs_status[12]}
     local unmerged=${vcs_status[13]}
+    local commit_id=${vcs_status[14]}
+
+    local unclean=
 
     # Select formats.
     local used_formats
@@ -341,24 +350,28 @@ function _zsh_vcs_prompt_update_vcs_status() {
     stashed=$(_zsh_vcs_prompt_set_sigil "$stashed" "$ZSH_VCS_PROMPT_STASHED_SIGIL")
     if [ "$clean" = '1' ]; then
         clean=$ZSH_VCS_PROMPT_CLEAN_SIGIL
+        unclean=
     elif [ "$clean" = '0' ]; then
         clean=
+        unclean=$ZSH_VCS_PROMPT_UNCLEAN_SIGIL
     fi
 
     # Compose prompt status.
     local prompt_info
     prompt_info=$(echo "$used_formats" | sed \
-        -e "s/#s/$vcs_name/" \
-        -e "s/#a/$action/" \
-        -e "s/#b/$branch/" \
-        -e "s/#c/$ahead/" \
-        -e "s/#d/$behind/" \
-        -e "s/#e/$staged/" \
-        -e "s/#f/$conflicts/" \
-        -e "s/#g/$unstaged/" \
-        -e "s/#h/$untracked/" \
-        -e "s/#i/$stashed/" \
-        -e "s/#j/$clean/")
+        -e "s/#s/$vcs_name/g" \
+        -e "s/#a/$action/g" \
+        -e "s/#b/$branch/g" \
+        -e "s/#c/$ahead/g" \
+        -e "s/#d/$behind/g" \
+        -e "s/#e/$staged/g" \
+        -e "s/#f/$conflicts/g" \
+        -e "s/#g/$unstaged/g" \
+        -e "s/#h/$untracked/g" \
+        -e "s/#i/$stashed/g" \
+        -e "s/#j/$clean/g" \
+        -e "s/#J/$unclean/g" \
+        -e "s/#x/$commit_id[0,$ZSH_VCS_PROMPT_HASH_LENGTH]/g")
 
     ZSH_VCS_PROMPT_VCS_STATUS=$prompt_info
 

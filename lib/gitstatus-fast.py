@@ -154,6 +154,9 @@ def main():
                                 % (merge_branch, branch)).splitlines()
         unmerged = len(unmerged_list)
 
+    # commit id
+    commit_id = run_cmd('git rev-parse HEAD').strip()
+
     # Result
     out = '\n'.join([
         branch,
@@ -165,7 +168,8 @@ def main():
         str(untracked),
         str(stashed),
         clean,
-        str(unmerged)])
+        str(unmerged),
+        str(commit_id)])
     print(out)
 
 
